@@ -71,20 +71,39 @@ const SAMPLE_VIDEOS = [
 
 // ─── Anthropic API call ───────────────────────────────────────────────────────
 async function callClaude(prompt, system) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      system,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-  const data = await res.json();
-  return data.content?.map(b => b.text || "").join("") || "";
+  try {
+    const apiKey = process.env.REACT_APP_ANTHROPIC_KEY;
+    if (!apiKey) {
+      console.error("No API key found");
+      return null;
+    }
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: system,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      console.error("API error:", err);
+      return null;
+    }
+    const data = await res.json();
+    return data.content?.map(b => b.text || "").join("") || "";
+  } catch (err) {
+    console.error("Fetch error:", err);
+    return null;
+  }
 }
-
 // ─── Components ───────────────────────────────────────────────────────────────
 function Badge({ style }) {
   const colors = { educational:"#2a4a2a", social:"#2a2a4a", corporate:"#4a3a1a", motivational:"#4a1a1a" };
