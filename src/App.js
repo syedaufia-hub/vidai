@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
+import ReactDOM from "react-dom/client";
+export default function App() {
 
 // ─── Palette & Fonts ────────────────────────────────────────────────────────
 const FONTS = `
@@ -224,7 +226,6 @@ export default function App() {
   const generateVideo = useCallback(async () => {
     const script = showImproved && improvedScript ? improvedScript : prompt;
     if (!script.trim()) return;
-    setActiveScript(script);
     setPhase("generating");
     setStepIdx(0);
     setProgress(0);
@@ -271,13 +272,11 @@ export default function App() {
     }
 
     // 2️⃣  Simulate rendering steps
-    let elapsed = 0;
     const totalDuration = STEPS.reduce((s, st) => s + st.duration, 0);
 
     for (let i = 0; i < STEPS.length; i++) {
       setStepIdx(i);
       const stepStart = STEPS.slice(0, i).reduce((s, st) => s + st.duration, 0);
-      const stepEnd = stepStart + STEPS[i].duration;
       const stepDuration = STEPS[i].duration;
       const tickMs = 40;
       const ticks = Math.floor(stepDuration / tickMs);
